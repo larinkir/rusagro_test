@@ -58,11 +58,9 @@ func scanHost(outLog *OutputLog, host string, startPort, endPort uint16) ([]uint
 			err := portScan(port, host)
 			if err == nil {
 				go outLog.Add(fmt.Sprintf("port: %d is open", port))
-				log.Println(fmt.Sprintf("port: %d is open", port))
 				listPorts = append(listPorts, port)
 			} else {
 				go outLog.Add(fmt.Sprintf("port: %d scan failed: %s", port, err))
-
 			}
 			<-ch
 		}(i)
