@@ -1,9 +1,9 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"log"
+	"math"
 	"net"
 	"runtime"
 	"sync"
@@ -17,9 +17,17 @@ type OutputLog struct {
 }
 
 func main() {
-	var host string = "ya.ru"
+	var host string = "localhost"
 	var portStart uint16 = 1
-	var portEnd uint16 = 1000
+	var portEnd uint16 = math.MaxUint16
+
+	if host == "" || portStart == 0 || portEnd == 0 {
+		log.Fatal("arguments is missing")
+	}
+
+	if portStart > portEnd {
+		log.Fatal("portStart > portEnd")
+	}
 
 	outLog := &OutputLog{
 		wg: sync.WaitGroup{},
@@ -30,9 +38,10 @@ func main() {
 		log.Fatal(err)
 	}
 	outLog.wg.Wait()
+
 	elapsed := time.Since(start)
 
-	log.Printf("Test_Stress_Failed_Connect time: %s | Total tasks:  %d", elapsed.String(), MaxTasks)
+	log.Printf("Time: %s | Max tasks:  %d", elapsed.String(), MaxTasks)
 	log.Println("------------------")
 	for i := 0; i < len(res); i++ {
 		log.Printf("port: %d is open", res[i])
@@ -41,11 +50,7 @@ func main() {
 func scanHost(outLog *OutputLog, host string, startPort, endPort uint16) ([]uint16, error) {
 	sizeTasks := endPort - startPort + 1
 	listPorts := make([]uint16, 0, sizeTasks)
-	if host == "" || startPort == 0 || endPort == 0 {
-		return listPorts, errors.New("arguments is missing")
-	} else if startPort > endPort {
-		return listPorts, errors.New("invalid arguments")
-	}
+
 	wg := sync.WaitGroup{}
 	wg.Add(int(sizeTasks))
 
@@ -64,12 +69,16 @@ func scanHost(outLog *OutputLog, host string, startPort, endPort uint16) ([]uint
 			}
 			<-ch
 		}(i)
+
+		if i == math.MaxUint16 {
+			break
+		}
 	}
 	wg.Wait()
 	return listPorts[0:len(listPorts):len(listPorts)], nil
 }
 func portScan(port uint16, host string) error {
-	connect, err := net.DialTimeout("tcp", fmt.Sprintf("%s:%d", host, port), 20*time.Millisecond)
+	connect, err := net.DialTimeout("tcp", fmt.Sprintf("%s:%d", host, port), 1*time.Millisecond)
 	if err != nil {
 		return fmt.Errorf("%w", err)
 	}
