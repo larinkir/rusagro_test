@@ -78,6 +78,8 @@ func scanHost(outLog *OutputLog, host string, startPort, endPort uint16) ([]uint
 		}
 	}
 	wg.Wait()
+	close(ch)
+	
 	return listPorts[0:len(listPorts):len(listPorts)], nil
 }
 func portScan(port uint16, host string) error {
