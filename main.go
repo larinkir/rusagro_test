@@ -52,6 +52,7 @@ func scanHost(outLog *OutputLog, host string, startPort, endPort uint16) ([]uint
 	listPorts := make([]uint16, 0, sizeTasks)
 
 	wg := sync.WaitGroup{}
+	mu := sync.Mutex{}
 	wg.Add(int(sizeTasks))
 
 	ch := make(chan struct{}, MaxTasks)
@@ -63,7 +64,9 @@ func scanHost(outLog *OutputLog, host string, startPort, endPort uint16) ([]uint
 			err := portScan(port, host)
 			if err == nil {
 				go outLog.Add(fmt.Sprintf("port: %d is open", port))
+				mu.Lock()
 				listPorts = append(listPorts, port)
+				mu.Unlock()
 			} else {
 				go outLog.Add(fmt.Sprintf("port: %d scan failed: %s", port, err))
 			}
