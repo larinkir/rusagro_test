@@ -17,9 +17,9 @@ type OutputLog struct {
 }
 
 func main() {
-	var host string = "localhost"
-	var portStart uint16 = 1
-	var portEnd uint16 = math.MaxUint16
+	var host string = "cht.sh"
+	var portStart uint16 = 80
+	var portEnd uint16 = 443
 
 	if host == "" || portStart == 0 || portEnd == 0 {
 		log.Fatal("arguments is missing")
@@ -83,7 +83,7 @@ func scanHost(outLog *OutputLog, host string, startPort, endPort uint16) ([]uint
 	return listPorts[0:len(listPorts):len(listPorts)], nil
 }
 func portScan(port uint16, host string) error {
-	connect, err := net.DialTimeout("tcp", fmt.Sprintf("%s:%d", host, port), 1*time.Millisecond)
+	connect, err := net.DialTimeout("tcp", fmt.Sprintf("%s:%d", host, port), 10*time.Second)
 	if err != nil {
 		return fmt.Errorf("%w", err)
 	}
